@@ -1,0 +1,22 @@
+[package]
+name = "examples"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+repository = "https://github.com/JMontupet/http-cgi"
+
+[dependencies]
+bytes = "1.12.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+http-cgi = { version="0.1.0-alpha.1", path="../http-cgi", features = ["json"] }
+
+
+[[example]]
+name = "hello-world"
+path = "hello-world.rs"
+
+[[example]]
+name = "hello-world-macros"
+path = "hello-world-macros.rs"
