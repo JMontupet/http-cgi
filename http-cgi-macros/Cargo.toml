@@ -4,6 +4,9 @@ version = "0.1.0-alpha.1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/JMontupet/http-cgi"
+description = "Procedural macros for http-cgi"
+keywords = ["http-cgi"]
+categories = ["web-programming"]
 
 [lib]
 proc-macro = true

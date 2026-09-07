@@ -4,6 +4,9 @@ version = "0.1.0-alpha.1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/JMontupet/http-cgi"
+description = "A bridge to handle CGI environments using standard Rust http crate types."
+keywords = ["http", "cgi"]
+categories = ["web-programming"]
 
 [features]
 default = ["macros"]
