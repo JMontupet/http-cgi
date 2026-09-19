@@ -1,6 +1,6 @@
 [package]
 name = "http-cgi-macros"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/JMontupet/http-cgi"
@@ -14,4 +14,4 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0.107"
 quote = "1.0.47"
-syn = { version = "3.0.5", features = ["full"] }
+syn = { version = "3.0.6", features = ["full"] }

@@ -1,6 +1,6 @@
 [package]
 name = "http-cgi"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/JMontupet/http-cgi"
@@ -14,7 +14,7 @@ json = ["dep:serde", "dep:serde_json"]
 macros = ["dep:http-cgi-macros"]
 
 [dependencies]
-http-cgi-macros = { version="0.1.0-alpha.1", path="../http-cgi-macros", optional = true }
+http-cgi-macros = { version="0.1.0-alpha.2", path="../http-cgi-macros", optional = true }
 
 bytes = "1.12.1"
 http = "1.5.0"
