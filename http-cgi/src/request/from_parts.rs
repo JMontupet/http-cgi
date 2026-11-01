@@ -3,9 +3,10 @@ use std::convert::Infallible;
 use http::HeaderMap;
 
 use crate::request::Parts;
+use crate::response::IntoResponse;
 
 pub trait FromRequestParts: Sized {
-    type Error;
+    type Error: IntoResponse;
     fn from_request_parts(parts: &Parts) -> Result<Self, Self::Error>;
 }
 

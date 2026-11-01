@@ -18,7 +18,7 @@ http-cgi-macros = { version="0.1.0-alpha.2", path="../http-cgi-macros", optional
 
 bytes = "1.12.1"
 http = "1.5.0"
-thiserror = "2.0.20"
+thiserror = "2.0.21"
 
 serde = { version = "1.0.229", optional = true }
-serde_json = { version = "1.0.151", optional = true }
+serde_json = { version = "1.0.154", optional = true }

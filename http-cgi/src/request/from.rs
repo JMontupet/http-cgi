@@ -4,9 +4,10 @@ use std::string::FromUtf8Error;
 use bytes::Bytes;
 
 use crate::request::{FromRequestParts, Request};
+use crate::response::IntoResponse;
 
 pub trait FromRequest: Sized {
-    type Error;
+    type Error: IntoResponse;
     fn from_request(req: Request) -> Result<Self, Self::Error>;
 }
 
@@ -40,6 +41,6 @@ impl FromRequest for String {
 
     fn from_request(req: Request) -> Result<Self, Self::Error> {
         let body_bytes = req.into_body();
-        Ok(String::from_utf8(body_bytes.to_vec())?)
+        String::from_utf8(body_bytes.to_vec())
     }
 }

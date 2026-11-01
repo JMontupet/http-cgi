@@ -12,35 +12,49 @@ pub fn main(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let inputs = &func.sig.inputs;
     let output = &func.sig.output;
 
-    let params: Vec<_> = inputs
-        .iter()
-        .map(|arg| match arg {
-            syn::FnArg::Typed(pat_type) => {
-                let name = &pat_type.pat;
-                let ty = &pat_type.ty;
-                (name, ty)
+    let mut params = Vec::new();
+    for arg in inputs {
+        match arg {
+            syn::FnArg::Typed(pat_type) => params.push((&pat_type.pat, &pat_type.ty)),
+            syn::FnArg::Receiver(receiver) => {
+                return syn::Error::new_spanned(
+                    receiver,
+                    "`#[http_cgi::main]` does not support methods with `self`",
+                )
+                .to_compile_error()
+                .into();
             }
-            syn::FnArg::Receiver(_) => panic!("self not supported"),
-        })
-        .collect();
+        }
+    }
 
     let mut extractors: Vec<_> = params[..params.len().saturating_sub(1)]
         .iter()
         .map(|(name, ty)| {
             quote! {
                 let #name = match <#ty as http_cgi::request::FromRequestParts>::from_request_parts(&__parts) {
-                    Ok(v) => v,
-                    Err(_) => todo!()
+                    Ok(value) => value,
+                    // Infallible extractors have an uninhabited error type, so
+                    // rustc flags this call as unreachable. It is the only
+                    // thing the arm can do; the allow is scoped to the call.
+                    Err(error) => {
+                        #[allow(unreachable_code)]
+                        return http_cgi::response::IntoResponse::into_response(error);
+                    }
                 };
             }
         })
         .collect();
-    if params.len() > 0 {
+
+    if !params.is_empty() {
         let (name, ty) = params[params.len() - 1];
         extractors.push(quote! {
             let #name = match <#ty as http_cgi::request::FromRequest>::from_request(http_cgi::request::Request::from_parts(__parts, __body)) {
-                Ok(v) => v,
-                Err(_) => todo!()
+                Ok(value) => value,
+                // Same `Infallible` caveat as the parts extractors.
+                Err(error) => {
+                    #[allow(unreachable_code)]
+                    return http_cgi::response::IntoResponse::into_response(error);
+                }
             };
         });
     }
@@ -51,16 +65,31 @@ pub fn main(_attr: TokenStream, item: TokenStream) -> TokenStream {
         fn #internal_name(#inputs) #output #block
 
         fn main() {
+            let __response = http_cgi::run::catch(__http_cgi_run);
+            if let Err(__error) =
+                http_cgi::response::write_response(__response, std::io::stdout().lock())
+            {
+                eprintln!("http-cgi: failed to write response: {__error:?}");
+                std::process::exit(1);
+            }
+        }
+
+        fn __http_cgi_run() -> http_cgi::response::Response {
             let __env = std::env::vars_os();
             let __reader = std::io::stdin();
-            let __req = http_cgi::request::read_request(__env, __reader.lock()).unwrap();
-            let (__parts, __body) = __req.into_parts();
+            let __request = match http_cgi::request::read_request(__env, __reader.lock()) {
+                Ok(request) => request,
+                Err(error) => {
+                    return http_cgi::response::IntoResponse::into_response(error);
+                }
+            };
+            let (__parts, __body) = __request.into_parts();
 
             #(#extractors)*
 
-            let __res = <_ as http_cgi::response::IntoResponse>::into_response(#internal_name(#(#param_names),*));
-            let __writer = std::io::stdout();
-            http_cgi::response::write_response(__res, __writer.lock()).unwrap();
+            <_ as http_cgi::response::IntoResponse>::into_response(
+                #internal_name(#(#param_names),*),
+            )
         }
     }
     .into()
